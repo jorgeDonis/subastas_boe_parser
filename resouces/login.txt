@@ -1,2 +1,0 @@
-usuario USUARIO
-password PASSWORD
