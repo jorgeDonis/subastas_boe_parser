@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
 include(CheckCXXCompilerFlag)
 
 function(enable_cxx_compiler_flag_if_supported flag)
@@ -16,8 +19,14 @@ endfunction()
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 project(subastas_boe_parser)
 
-add_executable(main src/main.cpp)
+add_executable(main
+    src/main.cpp
+    src/DummyPersister.cpp
+    src/AuctionPersister.cpp
+    src/Parser.cpp
+)
 
+target_include_directories(main PRIVATE include)
 target_link_libraries(main -Wl,-Bsymbolic-functions -Wl,-z,relro -lcurl -lcurlpp)
 
 enable_cxx_compiler_flag_if_supported(-Wall)
