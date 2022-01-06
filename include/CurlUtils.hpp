@@ -1,5 +1,9 @@
+#pragma once
+
 #include <curlpp/Info.hpp>
 #include <string>
+#include <string_view>
+#include <sstream>
 
 namespace curlutils
 {
@@ -14,6 +18,13 @@ namespace curlutils
         if (!status_code)
             throw std::runtime_error("Could not get HTTP status code: " + status_code);
         return status_code;
+    }
+
+    static inline const std::string_view getResponseBody(curlpp::Easy const& handler)
+    {
+        std::stringstream ss;
+        ss << handler;
+        return ss.str();
     }
 
     /**

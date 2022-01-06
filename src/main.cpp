@@ -8,7 +8,7 @@ int main()
 {
     try
     {
-        Parser parser(new DummyPersister());
+        Parser parser(std::make_unique<DummyPersister>());
         parser.parse(1);
     }
     catch (std::exception const& e)
