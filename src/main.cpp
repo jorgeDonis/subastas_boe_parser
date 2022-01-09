@@ -9,7 +9,7 @@ int main()
     try
     {
         Parser parser(std::make_unique<DummyPersister>());
-        parser.parse(1);
+        parser.parse(20);
     }
     catch (std::exception const& e)
     {

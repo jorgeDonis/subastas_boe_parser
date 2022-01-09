@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 include(CheckCXXCompilerFlag)
 
@@ -18,16 +20,18 @@ endfunction()
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 project(subastas_boe_parser)
+find_package(Threads REQUIRED)
 
 add_executable(main
     src/main.cpp
     src/DummyPersister.cpp
     src/AuctionPersister.cpp
     src/Parser.cpp
+    src/ThreadPool.cpp
 )
 
 target_include_directories(main PRIVATE include)
-target_link_libraries(main -Wl,-Bsymbolic-functions -Wl,-z,relro -lcurl -lcurlpp)
+target_link_libraries(main -Wl,-Bsymbolic-functions -Wl,-z,relro -lcurl -lcurlpp Threads::Threads)
 
 enable_cxx_compiler_flag_if_supported(-Wall)
 enable_cxx_compiler_flag_if_supported(-pedantic)

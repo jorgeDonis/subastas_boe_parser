@@ -23,6 +23,10 @@ class Parser
         static const inline std::string CREDENTIALS_FILEPATH    =   "../resources/login.txt"    ;
 
         static constexpr inline uint32_t MAX_AUCTIONS_PER_QUERY = 2000;
+        static_assert(Parser::MAX_AUCTIONS_PER_QUERY >= 50);
+
+        // Threads working on parsing specific auctions (one thread per auction) simultaneously
+        static constexpr inline uint16_t MAX_WORKERS = 5;
 
         static const inline std::array<std::pair<const std::string, const std::string>, 42>
         FETCH_AUCTION_IDS_QUERY_PARAMETERS
@@ -93,7 +97,15 @@ class Parser
         //Makes a request to sign out
         static void close_boe_session();
 
-        static inline std::vector<std::string_view> get_auction_ids(uint32_t no_auctions);
+        /**
+         * @brief Calls https://subastas.boe.es/endpoint with the previously fetched session cookie.
+         * 
+         * @param endpoint Must begin with '/'
+         * @return std::string the repsonse body
+         */
+        static inline std::string http_get_boe(std::string const& endpoint);
+
+        static inline std::vector<std::string> get_auction_ids(uint32_t no_auctions);
 
         static inline curlpp::Options::Cookie get_session_cookie();
 
