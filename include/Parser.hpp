@@ -4,10 +4,10 @@
 
 #include <curlpp/Options.hpp>
 #include <inttypes.h>
+#include <json.hpp>
 #include <memory>
 #include <stdlib.h>
 #include <string_view>
-
 
 /**
  * This class fetches info from auctions hosted at subastas.boe.es
@@ -108,6 +108,10 @@ class Parser
         static inline std::vector<std::string> get_auction_ids(uint32_t no_auctions);
 
         static inline curlpp::Options::Cookie get_session_cookie();
+
+        static inline nlohmann::json parse_auction(const std::string_view auction_id);
+
+        static inline nlohmann::json parse_general_information(const std::string_view auction_id);
 
         /**
          * @brief Called once for each header in the response

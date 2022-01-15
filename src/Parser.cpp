@@ -3,6 +3,7 @@
 #include "CurlUtils.hpp"
 #include "Utils.hpp"
 #include "ThreadPool.hpp"
+#include "HTMLParsing.hpp"
 
 #include <curlpp/Easy.hpp>
 #include <curlpp/Info.hpp>
@@ -14,6 +15,7 @@
 #include <chrono>
 
 using namespace std;
+using namespace nlohmann;
 
 size_t Parser::header_callback_get_session_token(char* ptr, size_t size, size_t nmemb)
 {
@@ -168,9 +170,15 @@ vector<string> Parser::get_auction_ids(uint32_t const no_auctions)
     return auction_ids;
 }
 
-thread build_thread(function<void(void)> f)
+json Parser::parse_general_information(const string_view auction_id)
 {
-    return thread(f);
+    const string& html_body = http_get_boe("/reg/detalleSubasta.php?idSub=" + string(auction_id));
+    return HTMLParsing::parse_table(html_body);
+}
+
+json Parser::parse_auction(const string_view auction_id)
+{
+    return parse_general_information(auction_id);
 }
 
 void Parser::parse(uint32_t no_auctions)
@@ -185,7 +193,9 @@ void Parser::parse(uint32_t no_auctions)
         pool.addWork([&stdout_mutex, auction_id]
         {
             stdout_mutex.lock();
-            cout << "Parseando " << auction_id << " ... \n";
+            cout << "Parsing " << auction_id << " ... \n";
+            auto const& json = parse_auction(auction_id);
+            cout << json.dump(4) << '\n';
             stdout_mutex.unlock();
         });
     }

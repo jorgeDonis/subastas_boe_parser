@@ -28,6 +28,7 @@ add_executable(main
     src/AuctionPersister.cpp
     src/Parser.cpp
     src/ThreadPool.cpp
+    src/HTMLParsing.cpp
 )
 
 target_include_directories(main PRIVATE include)
