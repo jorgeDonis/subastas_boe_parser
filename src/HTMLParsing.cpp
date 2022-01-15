@@ -1,4 +1,5 @@
 #include "HTMLParsing.hpp"
+#include "Charset.hpp"
 
 #include <tuple>
 
@@ -36,14 +37,58 @@ uint16_t no_leading_whitespaces(const string_view line)
 {
     uint16_t i = 0;
     while (line[i] == ' ') { ++i; }
-    return (i - 1);
+    return i;
 }
+
+// Removes anything enclosed in '<>'
+string remove_html_tags(const string_view str)
+{
+    string res;
+    res.reserve(str.size());
+    bool skipping = false;
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        if (skipping)
+        {
+            if (str[i] == '>')
+                skipping = false;
+        }
+        else 
+        {
+            if (str[i] == '<')
+                skipping = true;
+            else
+                res += str[i];
+        }
+    }
+    return res;
+}
+
 
 json HTMLParsing::parse_table(const string_view html)
 {
+    json parsed_table;
+    //The attribute's name (a <th> element)
+    string key;
     auto const [table_element, base_leading_whitespaces] = find_table_element(html);
-    for_each_line(table_element, [](const string_view line) {
-        uint16_t leading_whitespace = no_leading_whitespaces(line);
-        int a = 2;
+    for_each_line(table_element, [base_leading_whitespaces, &parsed_table, &key](const string_view line) {
+        uint16_t leading_whitespaces = no_leading_whitespaces(line);
+        // all <tr> and <th> elements are 4 spaces more indented than the parent <table>
+        if (leading_whitespaces >= (base_leading_whitespaces + 4))
+        {
+            string processed_line = remove_html_tags(line.substr(leading_whitespaces));
+            if (!processed_line.empty())
+            {
+                charset::encode_unicode_chars(processed_line);
+                if (key.empty())
+                    key = processed_line;
+                else
+                {
+                    parsed_table[key] = processed_line;
+                    key.clear();
+                }
+            }
+        }
     });
+    return parsed_table;
 }

@@ -29,6 +29,7 @@ add_executable(main
     src/Parser.cpp
     src/ThreadPool.cpp
     src/HTMLParsing.cpp
+    src/Charset.cpp
 )
 
 target_include_directories(main PRIVATE include)
