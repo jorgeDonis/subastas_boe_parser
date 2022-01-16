@@ -172,8 +172,10 @@ vector<string> Parser::get_auction_ids(uint32_t const no_auctions)
 
 json Parser::parse_general_information(const string_view auction_id)
 {
+    json general_information;
     const string& html_body = http_get_boe("/reg/detalleSubasta.php?idSub=" + string(auction_id));
-    return HTMLParsing::parse_table(html_body);
+    general_information["Datos de la subasta"] = HTMLParsing::parse_table(html_body);
+    return general_information;
 }
 
 json Parser::parse_auction(const string_view auction_id)

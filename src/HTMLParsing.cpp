@@ -92,3 +92,13 @@ json HTMLParsing::parse_table(const string_view html)
     });
     return parsed_table;
 }
+
+
+vector<pair<string, string>> HTMLParsing::get_attachment_links(const string_view html)
+{
+    vector<pair<string, string>> attachments;
+    constexpr inline string_view info_box_title = "<h4>Informaci&#xF3;n complementaria de la subasta</h4>";
+
+
+    return attachments;
+}

@@ -1,8 +1,13 @@
 #include "Parser.hpp"
 #include "DummyPersister.hpp"
+#include "Charset.hpp"
 
 #include <exception>
 #include <iostream>
+#include <string_view>
+#include <string>
+
+using namespace std;
 
 int main()
 {
