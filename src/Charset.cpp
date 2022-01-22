@@ -12,6 +12,7 @@ bool constexpr is_decimal(const char character) { return (character >= '0' && ch
 
 bool constexpr is_uppercase_hex(const char character) { return (character >= 'A' && character <= 'F'); }
 
+bool constexpr is_lowecase_hex(const char character) { return (character >= 'a' && character <= 'f'); }
 
 constexpr array<uint8_t, 128> HEX_CHAR_TO_BINARY = []() {
     array<uint8_t, 128> a{};
@@ -21,6 +22,8 @@ constexpr array<uint8_t, 128> HEX_CHAR_TO_BINARY = []() {
             a[i] = i - '0';
         else if (is_uppercase_hex(i))
             a[i] = i - 'A' + 10;
+        else if (is_lowecase_hex(i))
+            a[i] = i - 'a' + 10;
         else
             a[i] = -1;
     }
@@ -76,7 +79,7 @@ uint32_t decode_hex(string_view str)
 {
     uint32_t four_byte_codepoint{};
     if ((str.length() * 4) > 32)
-        throw runtime_error("Cannot UTF-8 code point larger than 4 bytes");
+        throw runtime_error("Cannot have UTF-8 code point larger than 4 bytes");
     for (const char c : str)
         four_byte_codepoint = (four_byte_codepoint << 4) | HEX_CHAR_TO_BINARY[c];
     return four_byte_codepoint;
@@ -88,7 +91,7 @@ uint32_t decode_hex(string_view str)
 // 
 //               32 bits                     24 bits (first byte is skipped)
 //   0    0    A    1    7    F   2    D
-// 0000 0000 1010 0001 0111 1111 0010 1101 =>       [-95, 127, 45]
+// 0000 0000 1010 0001 0111 1111 0010 1101    =>     [-95, 127, 45]
 string binary_to_str(uint32_t data)
 {
     array<char, 4> str_data;
@@ -134,7 +137,7 @@ void charset::encode_unicode_chars(string& str)
     {
         const uint32_t binary_codepoint = decode_hex(hex_string);
         const uint32_t binary_utf8 = codepoint_to_utf8(binary_codepoint);
-        string const& utf8_str = binary_to_str(binary_utf8);
+        const string_view utf8_str = binary_to_str(binary_utf8);
         left -= HEX_PREFIX.size();
         str.replace(left, right - left + 1, utf8_str);
     });

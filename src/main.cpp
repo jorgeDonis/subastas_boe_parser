@@ -13,12 +13,12 @@ int main()
 {
     try
     {
-        Parser parser(std::make_unique<DummyPersister>());
+        Parser parser(make_unique<DummyPersister>());
         parser.parse(1);
     }
-    catch (std::exception const& e)
+    catch (exception const& e)
     {
-        std::cerr << e.what();
+        cerr << e.what();
     }
     return 0;
 }

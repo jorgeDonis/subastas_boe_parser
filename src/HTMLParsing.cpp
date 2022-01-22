@@ -71,7 +71,8 @@ json HTMLParsing::parse_table(const string_view html)
     //The attribute's name (a <th> element)
     string key;
     auto const [table_element, base_leading_whitespaces] = find_table_element(html);
-    for_each_line(table_element, [base_leading_whitespaces, &parsed_table, &key](const string_view line) {
+    for_each_line(table_element, [base_leading_whitespaces, &parsed_table, &key](const string_view line)
+    {
         uint16_t leading_whitespaces = no_leading_whitespaces(line);
         // all <tr> and <th> elements are 4 spaces more indented than the parent <table>
         if (leading_whitespaces >= (base_leading_whitespaces + 4))
@@ -94,11 +95,80 @@ json HTMLParsing::parse_table(const string_view html)
 }
 
 
+template
+<typename FunctionType>
+void for_each_a_tag(const string_view html, FunctionType f)
+{
+    const static string_view links_title = R"(<ul class="enlaces">)";
+    size_t left{}, right{};
+    left = html.find(links_title);
+    size_t box_end = html.find("</ul>", left);
+    while (left != string::npos && left < box_end && right != string::npos)
+    {
+        left = html.find("<a href=", left);
+        if (left != string::npos && left < box_end)
+        {
+            const size_t right = html.find("</a>", left);
+            if (right != string::npos)
+            {
+                f(html.substr(left + 3, right - left + 1));
+                left = right + 4;
+            }
+        }
+    }
+}
+
+/**
+ * @param str The original string
+ * @param left_del Left delimiter string
+ * @param right_del Right delimiter string
+ * @return The substring, EXCLUDING the delimiters
+ * @throws RuntimeException if the substring cannot be found
+ */
+string_view substr(const string_view str, const string_view left_del, const string_view right_del)
+{
+    size_t left{}, right{};
+    left = str.find(left_del);
+    if (left != string::npos)
+    {
+        left += left_del.size();
+        right = str.find(right_del, left);
+        if (right != string::npos)
+            return str.substr(left, right - left);
+    }
+    throw runtime_error("Could not find substring. Original string:\n" + string(str) + 
+    "\n Left delimiter: \n" + string(left_del) + "\n Right delimiter: \n" + string(right_del));
+}
+
+// Returns a version of 'str' where every occurrence of
+// 'find' is substituted by 'replace'.
+string replace_all(const string_view str, const string_view find, const string_view replace)
+{
+    string result;
+    size_t find_len = find.size();
+    size_t pos, from = 0;
+    while ((pos = str.find(find, from)) != string::npos)
+    {
+        result.append(str, from, pos - from);
+        result.append(replace);
+        from = pos + find_len;
+    }
+    result.append(str, from, string::npos);
+    return result;
+}
+
 vector<pair<string, string>> HTMLParsing::get_attachment_links(const string_view html)
 {
     vector<pair<string, string>> attachments;
-    constexpr inline string_view info_box_title = "<h4>Informaci&#xF3;n complementaria de la subasta</h4>";
-
-
+    for_each_a_tag(html, [&attachments](const string_view a_tag)
+    {
+        // a_tag is "href="link" target="_blank">documentName</a>
+        string document_name = string(substr(a_tag, R"(target="_blank">)", "</a>"));
+        charset::encode_unicode_chars(document_name);
+        string_view link = substr(a_tag, R"(href=")", R"(" target="_blank">)");
+        string formatted_link = replace_all(link, "&amp;", "&");
+        formatted_link = "/reg/" + formatted_link;
+        attachments.emplace_back(pair{document_name, formatted_link});
+    });
     return attachments;
 }

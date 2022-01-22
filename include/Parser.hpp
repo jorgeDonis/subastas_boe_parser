@@ -8,6 +8,7 @@
 #include <memory>
 #include <stdlib.h>
 #include <string_view>
+#include <utility>
 
 /**
  * This class fetches info from auctions hosted at subastas.boe.es
@@ -110,6 +111,8 @@ class Parser
         static inline curlpp::Options::Cookie get_session_cookie();
 
         static inline nlohmann::json parse_auction(const std::string_view auction_id);
+
+        static inline nlohmann::json download_attachments(std::vector<std::pair<std::string, std::string>> const& attachment_links);
 
         static inline nlohmann::json parse_general_information(const std::string_view auction_id);
 

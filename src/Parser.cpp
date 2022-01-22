@@ -13,6 +13,7 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <Base64.hpp>
 
 using namespace std;
 using namespace nlohmann;
@@ -170,11 +171,25 @@ vector<string> Parser::get_auction_ids(uint32_t const no_auctions)
     return auction_ids;
 }
 
+json Parser::download_attachments(vector<pair<string, string>> const& attachment_links)
+{
+    json attachments;
+    for (auto const& [document_name, link] : attachment_links)
+    {
+        json attachment;
+        attachment[document_name] = macaron::Base64::Encode(http_get_boe(link));
+        attachments.emplace_back(attachment);
+    }
+    return attachments;
+}
+
 json Parser::parse_general_information(const string_view auction_id)
 {
     json general_information;
     const string& html_body = http_get_boe("/reg/detalleSubasta.php?idSub=" + string(auction_id));
     general_information["Datos de la subasta"] = HTMLParsing::parse_table(html_body);
+    auto const& attachments = HTMLParsing::get_attachment_links(html_body);
+    general_information["Documentos"] = download_attachments(attachments);
     return general_information;
 }
 
@@ -187,7 +202,6 @@ void Parser::parse(uint32_t no_auctions)
 {
     cout << "Fetcing auction ids ..." << '\n';
     auto const& auction_ids = get_auction_ids(no_auctions);
-    cout << "Got " << auction_ids.size() << " auction ids\n";
     mutex stdout_mutex;
     ThreadPool pool(MAX_WORKERS);
     for (const string_view auction_id : auction_ids)
